@@ -82,8 +82,13 @@ func (b *profileBuilder) readMapping() {
 	}
 }
 
-func readMainModuleMapping() (start, end uint64, err error) {
+func readMainModuleMapping() (start, end uint64, exe, buildID string, err error) {
 	data, _ := os.ReadFile("/proc/" + itoa.Itoa(syscall.Getpid()) + "/modules")
+
+	exe, err = os.Executable()
+	if err != nil {
+		return 0, 0, "", "", err
+	}
 
 	var line []byte
 	// next removes and returns the next field in the line.
@@ -116,8 +121,8 @@ func readMainModuleMapping() (start, end uint64, err error) {
 
 		next() // symcnt
 
-		return lo, lo + size, nil
+		return lo, lo + size, exe, peBuildID(exe), nil
 	}
 
-	return 0, 0, errors.New("read /proc/self/modules failed")
+	return 0, 0, "", "", errors.New("read /proc/self/modules failed")
 }
