@@ -2,10 +2,18 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-//go:build !(darwin || freebsd || linux || netbsd || openbsd || sylixos)
+//go:build sylixos
 
 package sysinfo
 
+import "syscall"
+
 func osCpuInfoName() string {
-	return ""
+	var u syscall.Utsname
+
+	if errno := syscall.Uname(&u); errno != nil {
+		return ""
+	}
+	cpu := string(u.Machine[:])
+	return cpu
 }
