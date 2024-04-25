@@ -229,6 +229,10 @@ func TestFIFONonBlockingEOF(t *testing.T) {
 	}
 
 	fifoName := filepath.Join(dir, "issue-66239-fifo")
+	if runtime.GOOS == "sylixos" {
+		defer os.Remove(fifoName)
+	}
+
 	if err := syscall.Mkfifo(fifoName, 0600); err != nil {
 		t.Fatalf("Error creating fifo: %v", err)
 	}
