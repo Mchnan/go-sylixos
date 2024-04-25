@@ -590,8 +590,26 @@ func Utimes(path string, tv []Timeval) (err error) {
 }
 
 func UtimesNano(path string, ts []Timespec) error {
+	// UTIME_OMIT value must match internal/syscall/unix/at_sylixos.go
+	const UTIME_OMIT = -0x1
 	if len(ts) != 2 {
 		return EINVAL
+	}
+	atime := ts[0].Sec
+	mtime := ts[1].Sec
+	if atime == UTIME_OMIT || mtime == UTIME_OMIT {
+		var st Stat_t
+		if err := Stat(path, &st); err != nil {
+			return err
+		}
+		if atime == UTIME_OMIT {
+			ts[0].Sec = st.Atime
+			ts[0].Nsec = 0
+		}
+		if mtime == UTIME_OMIT {
+			ts[1].Sec = st.Mtime
+			ts[1].Nsec = 0
+		}
 	}
 	// Not as efficient as it could be because Timespec and
 	// Timeval have different types in the different OSes
