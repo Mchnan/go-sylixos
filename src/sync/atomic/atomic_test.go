@@ -2456,6 +2456,9 @@ func TestAutoAligned64(t *testing.T) {
 }
 
 func TestNilDeref(t *testing.T) {
+	if runtime.GOOS == "sylixos" {
+		t.Skip("because sylixos only have on page table, so this test may crash kernel!, skip it.")
+	}
 	funcs := [...]func(){
 		func() { CompareAndSwapInt32(nil, 0, 0) },
 		func() { (*Int32)(nil).CompareAndSwap(0, 0) },
@@ -2519,17 +2522,11 @@ func TestNilDeref(t *testing.T) {
 	for _, f := range funcs {
 		func() {
 			defer func() {
-				// SylixOS GC will spend to many time
-				if runtime.GOOS != "sylixos" {
-					runtime.GC()
-				}
+				runtime.GC()
 				recover()
 			}()
 			f()
 		}()
-	}
-	if runtime.GOOS == "sylixos" {
-		runtime.GC()
 	}
 }
 
