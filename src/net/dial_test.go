@@ -987,7 +987,7 @@ func TestDialListenerAddr(t *testing.T) {
 
 func TestDialerControl(t *testing.T) {
 	switch runtime.GOOS {
-	case "plan9":
+	case "plan9", "sylixos":
 		t.Skipf("not supported on %s", runtime.GOOS)
 	case "js", "wasip1":
 		t.Skipf("skipping: fake net does not support Dialer.Control")
@@ -1032,7 +1032,7 @@ func TestDialerControl(t *testing.T) {
 
 func TestDialerControlContext(t *testing.T) {
 	switch runtime.GOOS {
-	case "plan9":
+	case "plan9", "sylixos":
 		t.Skipf("%s does not have full support of socktest", runtime.GOOS)
 	case "js", "wasip1":
 		t.Skipf("skipping: fake net does not support Dialer.ControlContext")
