@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"io"
 	"reflect"
+	"runtime"
 	"strings"
 	"sync"
 	"testing"
@@ -1618,6 +1619,9 @@ func TestInterfaceValues(t *testing.T) {
 
 // Check that panics during calls are recovered and returned as errors.
 func TestExecutePanicDuringCall(t *testing.T) {
+	if runtime.GOOS == "sylixos" {
+		t.Skip("because sylixos only have on page table, so this test will crash kernel!, skip it.")
+	}
 	funcs := map[string]any{
 		"doPanic": func() string {
 			panic("custom panic string")

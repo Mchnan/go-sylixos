@@ -47,6 +47,11 @@ func sysFaultOS(v unsafe.Pointer, n uintptr) {
 
 func sysReserveOS(v unsafe.Pointer, n uintptr) unsafe.Pointer {
 	p, err := mmap(v, n, _PROT_NONE, _MAP_ANON|_MAP_PRIVATE, -1, 0)
+	// On sylixos, when mmap anon|private with prot_none returns 0xc,
+	// it means no virts mem space left on sylixos VMM.
+	if err == _ENOMEM {
+		throw("runtime: out of memory")
+	}
 	if err != 0 {
 		return nil
 	}
