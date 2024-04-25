@@ -1343,9 +1343,6 @@ func startHang(t *testing.T, ctx context.Context, hangTime time.Duration, interr
 }
 
 func TestWaitInterrupt(t *testing.T) {
-	if runtime.GOOS == "sylixos" { //ACOINFO TODO
-		t.Skipf("Skipping TestWaitInterrupt on SylixOS")
-	}
 	t.Parallel()
 
 	// tooLong is an arbitrary duration that is expected to be much longer than
