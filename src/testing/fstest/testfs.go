@@ -15,6 +15,7 @@ import (
 	"sort"
 	"strings"
 	"testing/iotest"
+	"runtime"
 )
 
 // TestFS tests a file system implementation.
@@ -600,17 +601,27 @@ func (t *fsTester) checkBadPath(file string, desc string, open func(string) erro
 		bad = append(bad,
 			file[:i]+"//"+file[i+1:],
 			file[:i]+"/./"+file[i+1:],
-			file[:i]+`\`+file[i+1:],
 			file[:i]+"/../"+file,
 		)
+
+		if runtime.GOOS != "sylixos" { //ACOINFO TODO: SylixOS accept backslash as separator.
+			bad = append(bad,
+				file[:i]+`\`+file[i+1:],
+			)
+		}
 	}
 	if i := strings.LastIndex(file, "/"); i >= 0 {
 		bad = append(bad,
 			file[:i]+"//"+file[i+1:],
 			file[:i]+"/./"+file[i+1:],
-			file[:i]+`\`+file[i+1:],
 			file+"/../"+file[i+1:],
 		)
+
+		if runtime.GOOS != "sylixos" { //ACOINFO TODO: SylixOS accept backslash as separator.
+			bad = append(bad,
+				file[:i]+`\`+file[i+1:],
+			)
+		}
 	}
 
 	for _, b := range bad {

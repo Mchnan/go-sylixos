@@ -198,46 +198,52 @@ func forkExec(argv0 string, argv []string, attr *ProcAttr) (pid int, err error) 
 
 	acquireForkLock()
 
-	// Allocate child status pipe close on exec.
-	if err = forkExecPipe(p[:]); err != nil {
-		releaseForkLock()
-		return 0, err
+	if runtime.GOOS != "sylixos" {
+		// Allocate child status pipe close on exec.
+		if err = forkExecPipe(p[:]); err != nil {
+			releaseForkLock()
+			return 0, err
+		}
 	}
 
 	// Kick off child.
 	pid, err1 = forkAndExecInChild(argv0p, argvp, envvp, chroot, dir, attr, sys, p[1])
 	if err1 != 0 {
-		Close(p[0])
-		Close(p[1])
+		if runtime.GOOS != "sylixos" {
+			Close(p[0])
+			Close(p[1])
+		}
 		releaseForkLock()
 		return 0, Errno(err1)
 	}
 	releaseForkLock()
 
-	// Read child error status from pipe.
-	Close(p[1])
-	for {
-		n, err = readlen(p[0], (*byte)(unsafe.Pointer(&err1)), int(unsafe.Sizeof(err1)))
-		if err != EINTR {
-			break
+	if runtime.GOOS != "sylixos" {
+		// Read child error status from pipe.
+		Close(p[1])
+		for {
+			n, err = readlen(p[0], (*byte)(unsafe.Pointer(&err1)), int(unsafe.Sizeof(err1)))
+			if err != EINTR {
+				break
+			}
 		}
-	}
-	Close(p[0])
-	if err != nil || n != 0 {
-		if n == int(unsafe.Sizeof(err1)) {
-			err = Errno(err1)
-		}
-		if err == nil {
-			err = EPIPE
-		}
+		Close(p[0])
+		if err != nil || n != 0 {
+			if n == int(unsafe.Sizeof(err1)) {
+				err = Errno(err1)
+			}
+			if err == nil {
+				err = EPIPE
+			}
 
-		// Child failed; wait for it to exit, to make sure
-		// the zombies don't accumulate.
-		_, err1 := Wait4(pid, &wstatus, 0, nil)
-		for err1 == EINTR {
-			_, err1 = Wait4(pid, &wstatus, 0, nil)
+			// Child failed; wait for it to exit, to make sure
+			// the zombies don't accumulate.
+			_, err1 := Wait4(pid, &wstatus, 0, nil)
+			for err1 == EINTR {
+				_, err1 = Wait4(pid, &wstatus, 0, nil)
+			}
+			return 0, err
 		}
-		return 0, err
 	}
 
 	// Read got EOF, so pipe closed on exec, so exec succeeded.

@@ -193,6 +193,12 @@ func TestFlap(t *testing.T) {
 	}
 	check(t, msg, <-done, net)
 
+	// ACOINFO TODO SylixOS no support AF_UNIX SO_REUSEADDR now
+	if runtime.GOOS == "sylixos" {
+		s.Close()
+		return
+	}
+
 	// restart the server
 	if err := os.Remove(addr); err != nil {
 		t.Fatal(err)

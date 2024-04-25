@@ -2020,6 +2020,9 @@ func forEachPInternal(fn func(*p)) {
 			// Requires system stack.
 			if notetsleep(&sched.safePointNote, 100*1000) {
 				noteclear(&sched.safePointNote)
+				if GOOS == "sylixos" && sched.safePointWait != 0 {
+					continue
+				}
 				break
 			}
 			preemptall()

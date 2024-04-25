@@ -2519,11 +2519,17 @@ func TestNilDeref(t *testing.T) {
 	for _, f := range funcs {
 		func() {
 			defer func() {
-				runtime.GC()
+				// SylixOS GC will spend to many time
+				if runtime.GOOS != "sylixos" {
+					runtime.GC()
+				}
 				recover()
 			}()
 			f()
 		}()
+	}
+	if runtime.GOOS == "sylixos" {
+		runtime.GC()
 	}
 }
 

@@ -68,6 +68,9 @@ Don't worry much about the base levels, but check the ones in our own package.
 		/Users/r/go/src/testing/testing.go:561 +0x86d
 */
 func TestStack(t *testing.T) {
+	if runtime.GOOS == "sylixos" {
+		t.Skip("wrong path separator on SylixOS")
+	}
 	b := T(0).method()
 	lines := strings.Split(string(b), "\n")
 	if len(lines) < 6 {

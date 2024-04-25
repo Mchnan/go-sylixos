@@ -160,10 +160,17 @@ TEXT runtime·rt0_go(SB),NOSPLIT|NOFRAME|TOPFRAME,$0
 	// copy arguments forward on an even stack
 	MOVQ	DI, AX		// argc
 	MOVQ	SI, BX		// argv
+#ifdef GOOS_sylixos
+	SUBQ	$(8), SP
+#endif
 	SUBQ	$(5*8), SP		// 3args 2auto
 	ANDQ	$~15, SP
 	MOVQ	AX, 24(SP)
 	MOVQ	BX, 32(SP)
+
+#ifdef GOOS_sylixos
+	MOVQ	DX, 40(SP)	// env
+#endif
 
 	// create istack out of the given (operating system) stack.
 	// _cgo_init may update stackguard.
@@ -250,7 +257,10 @@ needtls:
 	// skip TLS setup on OpenBSD
 	JMP ok
 #endif
-
+#ifdef GOOS_sylixos
+	// skip TLS setup on SylixOS
+	JMP ok
+#endif
 #ifdef GOOS_windows
 	CALL	runtime·wintls(SB)
 #endif
@@ -339,6 +349,12 @@ ok:
 #endif
 
 	CALL	runtime·check(SB)
+
+#ifdef GOOS_sylixos
+	MOVQ	40(SP), AX		// copy env
+	MOVQ	AX, 0(SP)
+	CALL	runtime·sylixosenvs(SB)
+#endif
 
 	MOVL	24(SP), AX		// copy argc
 	MOVL	AX, 0(SP)

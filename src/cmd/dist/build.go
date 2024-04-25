@@ -100,6 +100,7 @@ var okgoos = []string{
 	"plan9",
 	"windows",
 	"aix",
+	"sylixos",
 }
 
 // find reports the first index of p in l[0:n], or else -1.
@@ -1044,6 +1045,7 @@ var unixOS = map[string]bool{
 	"netbsd":    true,
 	"openbsd":   true,
 	"solaris":   true,
+	"sylixos":   true,
 }
 
 // matchtag reports whether the tag matches this build.
@@ -1770,6 +1772,8 @@ var cgoEnabled = map[string]bool{
 	"windows/amd64":   true,
 	"windows/arm":     false,
 	"windows/arm64":   true,
+	"sylixos/amd64":   true,
+	"sylixos/arm64":   true,
 }
 
 // List of platforms that are marked as broken ports.

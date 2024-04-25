@@ -133,6 +133,36 @@ func testPCs(t *testing.T) (addr1, addr2 uint64, map1, map2 *profile.Mapping) {
 			BuildID:      buildID,
 			HasFunctions: true,
 		}
+	case "sylixos":
+		addr1 = uint64(abi.FuncPCABIInternal(f1))
+		addr2 = uint64(abi.FuncPCABIInternal(f2))
+
+		exe, err := os.Executable()
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		start, end, exe, buildID, err := readMainModuleMapping()
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		map1 = &profile.Mapping{
+			ID:           1,
+			Start:        start,
+			Limit:        end,
+			File:         exe,
+			BuildID:      buildID,
+			HasFunctions: true,
+		}
+		map2 = &profile.Mapping{
+			ID:           1,
+			Start:        start,
+			Limit:        end,
+			File:         exe,
+			BuildID:      buildID,
+			HasFunctions: true,
+		}
 	case "js", "wasip1":
 		addr1 = uint64(abi.FuncPCABIInternal(f1))
 		addr2 = uint64(abi.FuncPCABIInternal(f2))

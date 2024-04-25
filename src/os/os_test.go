@@ -1239,6 +1239,8 @@ func TestStartProcess(t *testing.T) {
 	switch runtime.GOOS {
 	case "android":
 		t.Skip("android doesn't have /bin/pwd")
+	case "sylixos":
+		t.Skip("SylixOS doesn't have /bin/pwd")
 	case "windows":
 		cmd = Getenv("COMSPEC")
 		dir = Getenv("SystemRoot")
@@ -1291,7 +1293,7 @@ func TestChmod(t *testing.T) {
 	checkMode(t, f.Name(), fm)
 
 	fm = FileMode(0123)
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == "windows" || runtime.GOOS == "sylixos" {
 		fm = FileMode(0666) // read-write file
 	}
 	if err := f.Chmod(fm); err != nil {
@@ -1556,6 +1558,8 @@ func testChtimes(t *testing.T, name string) {
 			// content.  Similarly, atime is set whenever
 			// the contents are accessed; also, it is set
 			// whenever mtime is set.
+		case "sylixos":
+			// ACOINFO TODO: Atime is changed in Chtimes which calling close.
 		case "netbsd":
 			mounts, _ := ReadFile("/proc/mounts")
 			if strings.Contains(string(mounts), "noatime") {
@@ -2375,7 +2379,7 @@ func TestStatDirModeExec(t *testing.T) {
 
 func TestStatStdin(t *testing.T) {
 	switch runtime.GOOS {
-	case "android", "plan9":
+	case "android", "plan9", "sylixos":
 		t.Skipf("%s doesn't have /bin/sh", runtime.GOOS)
 	}
 
@@ -2755,8 +2759,8 @@ func TestPipeThreads(t *testing.T) {
 
 	threads := 100
 
-	// OpenBSD has a low default for max number of files.
-	if runtime.GOOS == "openbsd" {
+	// OpenBSD and SylixOS has a low default for max number of files.
+	if runtime.GOOS == "openbsd" || runtime.GOOS == "sylixos" {
 		threads = 50
 	}
 
@@ -2918,6 +2922,10 @@ func TestUserHomeDir(t *testing.T) {
 }
 
 func TestDirSeek(t *testing.T) {
+	if runtime.GOOS == "sylixos" { //ACOINFO TODO: SylixOS not support seek directory
+		t.Skip("SylixOS not support seek directory")
+	}
+
 	t.Parallel()
 
 	wd, err := Getwd()
@@ -2958,6 +2966,9 @@ func TestDirSeek(t *testing.T) {
 }
 
 func TestReaddirSmallSeek(t *testing.T) {
+	if runtime.GOOS == "sylixos" { //ACOINFO TODO: SylixOS not support seek directory
+		t.Skip("SylixOS not support seek directory")
+	}
 	// See issue 37161. Read only one entry from a directory,
 	// seek to the beginning, and read again. We should not see
 	// duplicate entries.
@@ -3099,9 +3110,11 @@ func TestDirFS(t *testing.T) {
 
 	// Test that Open does not accept backslash as separator.
 	d := DirFS(".")
-	_, err = d.Open(`testdata\dirfs`)
-	if err == nil {
-		t.Fatalf(`Open testdata\dirfs succeeded`)
+	if runtime.GOOS != "sylixos" { //ACOINFO TODO: SylixOS accept backslash as separator.
+		_, err = d.Open(`testdata\dirfs`)
+		if err == nil {
+			t.Fatalf(`Open testdata\dirfs succeeded`)
+		}
 	}
 
 	// Test that Open does not open Windows device files.
@@ -3148,8 +3161,8 @@ func TestDirFSEmptyDir(t *testing.T) {
 }
 
 func TestDirFSPathsValid(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skipf("skipping on Windows")
+	if runtime.GOOS == "windows" || runtime.GOOS == "sylixos" { // ACOINFO TODO: SylixOS not support ':' in path.
+		t.Skipf("skipping on %s", runtime.GOOS)
 	}
 	t.Parallel()
 

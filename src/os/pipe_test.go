@@ -73,6 +73,8 @@ func TestStdPipe(t *testing.T) {
 	switch runtime.GOOS {
 	case "windows":
 		t.Skip("Windows doesn't support SIGPIPE")
+	case "sylixos": //ACOINFO TODO : SylixOS sub process signal and pipe can not compatible linux
+		t.Skip("SylixOS doesn't support SIGPIPE")
 	}
 
 	if os.Getenv("GO_TEST_STD_PIPE_HELPER") != "" {

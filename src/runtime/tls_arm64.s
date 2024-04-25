@@ -12,8 +12,10 @@ TEXT runtime·load_g(SB),NOSPLIT,$0
 #ifndef GOOS_darwin
 #ifndef GOOS_openbsd
 #ifndef GOOS_windows
+#ifndef GOOS_sylixos
 	MOVB	runtime·iscgo(SB), R0
 	CBZ	R0, nocgo
+#endif
 #endif
 #endif
 #endif
@@ -33,8 +35,10 @@ TEXT runtime·save_g(SB),NOSPLIT,$0
 #ifndef GOOS_darwin
 #ifndef GOOS_openbsd
 #ifndef GOOS_windows
+#ifndef GOOS_sylixos
 	MOVB	runtime·iscgo(SB), R0
 	CBZ	R0, nocgo
+#endif
 #endif
 #endif
 #endif

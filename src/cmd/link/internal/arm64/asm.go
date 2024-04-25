@@ -917,7 +917,7 @@ func archreloc(target *ld.Target, ldr *loader.Loader, syms *ld.ArchSyms, r loade
 			// We are linking the final executable, so we
 			// can optimize any TLS IE relocation to LE.
 
-			if !target.IsLinux() {
+			if !target.IsLinux() && !target.IsSylixos() {
 				ldr.Errorf(s, "TLS reloc on unsupported OS %v", target.HeadType)
 			}
 

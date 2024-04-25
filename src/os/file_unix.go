@@ -206,6 +206,16 @@ func newFile(fd int, name string, kind newFileKind, nonBlocking bool) *File {
 			if (runtime.GOOS == "darwin" || runtime.GOOS == "ios") && typ == syscall.S_IFIFO {
 				pollable = false
 			}
+
+		case "sylixos":
+			var st syscall.Stat_t
+			err := ignoringEINTR(func() error {
+				return syscall.Fstat(fd, &st)
+			})
+			typ := st.Mode & syscall.S_IFMT
+			if err == nil && typ == syscall.S_IFDIR {
+				pollable = false
+			}
 		}
 	}
 

@@ -15,8 +15,10 @@ import (
 	"io/fs"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"slices"
 	"strconv"
 	"strings"
@@ -1258,6 +1260,10 @@ func builderTest(b *work.Builder, ctx context.Context, pkgOpts load.PackageOpts,
 		}
 		runAction.Objdir = testDir
 		vetRunAction = runAction
+		// sylixos only have cross compiler, so no need to run test on HOST, only on TARGET
+		if cfg.Goos == "sylixos" && runtime.GOOS != "sylixos" {
+			runAction.Actor = work.ActorFunc(sylixosBuilderRunTest)
+		}
 		cleanAction = &work.Action{
 			Mode:       "test clean",
 			Actor:      work.ActorFunc(builderCleanTest),
@@ -2068,6 +2074,44 @@ func builderPrintTest(b *work.Builder, ctx context.Context, a *work.Action) erro
 	if run.TestOutput != nil {
 		os.Stdout.Write(run.TestOutput.Bytes())
 		run.TestOutput = nil
+	}
+	return nil
+}
+
+func copyFile(in, out string) (int64, error) {
+	i, e := os.Open(in)
+	if e != nil {
+		return 0, e
+	}
+	defer i.Close()
+	o, e := os.Create(out)
+	if e != nil {
+		return 0, e
+	}
+	defer o.Close()
+	return o.ReadFrom(i)
+}
+
+func sylixosBuilderRunTest(b *work.Builder, ctx context.Context, a *work.Action) error {
+	src := a.Deps[0].BuiltTarget()
+	srcFileName := ""
+	sylixosTestDirPath := ""
+	dest := ""
+	if runtime.GOOS == "windows" {
+		homeDir := os.Getenv("HOMEDRIVE") + os.Getenv("HOMEPATH")
+		sylixosTestDirPath = filepath.Join(homeDir, "go-test\\sylixos-tmp\\"+cfg.Goarch)
+		srcFileName = path.Base(strings.Replace(src, "\\", "/", -1))
+	} else {
+		homeDir := os.Getenv("HOME")
+		sylixosTestDirPath = filepath.Join(homeDir, "go-test/sylixos-tmp/"+cfg.Goarch)
+		srcFileName = path.Base(src)
+	}
+	os.MkdirAll(sylixosTestDirPath, 0777)
+	dest = filepath.Join(sylixosTestDirPath, srcFileName)
+
+	if _, err := os.Stat(src); err == nil {
+		fmt.Printf("Cp %s to %s\n", a.Deps[0].BuiltTarget(), dest)
+		copyFile(a.Deps[0].BuiltTarget(), dest)
 	}
 	return nil
 }

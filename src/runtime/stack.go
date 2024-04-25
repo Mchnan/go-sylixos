@@ -69,7 +69,7 @@ const (
 	// to each stack below the usual guard area for OS-specific
 	// purposes like signal handling. Used on Windows, Plan 9,
 	// and iOS because they do not use a separate stack.
-	stackSystem = goos.IsWindows*512*goarch.PtrSize + goos.IsPlan9*512 + goos.IsIos*goarch.IsArm64*1024
+	stackSystem = goos.IsWindows*512*goarch.PtrSize + goos.IsPlan9*512 + goos.IsIos*goarch.IsArm64*1024 + goos.IsSylixos*512*goarch.PtrSize
 
 	// The minimum size of stack used by Go code
 	stackMin = 2048
@@ -354,6 +354,12 @@ func stackalloc(n uint32) stack {
 		if v == nil {
 			throw("out of memory (stackalloc)")
 		}
+
+		if goos.IsSylixos == 1 {
+			for p := uintptr(v); p < (uintptr(v) + uintptr(n)); p += (2048 - (p % 2048)) {
+				*(*byte)(unsafe.Pointer(p)) = 0xfd
+			}
+		}
 		return stack{uintptr(v), uintptr(v) + uintptr(n)}
 	}
 
@@ -426,6 +432,11 @@ func stackalloc(n uint32) stack {
 	}
 	if stackDebug >= 1 {
 		print("  allocated ", v, "\n")
+	}
+	if goos.IsSylixos == 1 {
+		for p := uintptr(v); p < (uintptr(v) + uintptr(n)); p += (2048 - (p % 2048)) {
+			*(*byte)(unsafe.Pointer(p)) = 0xfd
+		}
 	}
 	return stack{uintptr(v), uintptr(v) + uintptr(n)}
 }

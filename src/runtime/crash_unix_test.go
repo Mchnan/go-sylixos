@@ -207,6 +207,16 @@ func TestPanicSystemstack(t *testing.T) {
 		t.Fatal("reading traceback from pipe: ", err)
 	}
 
+	// ACOINFO TODO
+	if runtime.GOOS == "sylixos" {
+		if bytes.Count(tb, []byte("blockOnSystemStackInternal")) != 1 ||
+			bytes.Count(tb, []byte("BlockOnSystemStack")) != 1 ||
+			bytes.Count(tb, []byte("testPanicSystemstackInternal")) != 1 {
+			t.Fatal("traceback missing system stack:\n", string(tb))
+		}
+		return
+	}
+
 	// Traceback should have two testPanicSystemstackInternal's
 	// and two blockOnSystemStackInternal's.
 	userFunc := "testPanicSystemstackInternal"

@@ -7,6 +7,7 @@
 package runtime
 
 import (
+	"internal/goos"
 	"unsafe"
 )
 
@@ -246,7 +247,7 @@ func (s *scavengeIndex) sysGrow(base, limit uintptr, sysStat *sysMemStat) uintpt
 //
 // Returns the amount of memory added to sysStat.
 func (s *scavengeIndex) sysInit(test bool, sysStat *sysMemStat) uintptr {
-	n := uintptr(1<<heapAddrBits) / pallocChunkBytes
+	n := uintptr(1<<heapAddrBits) / (pallocChunkBytes << (3 * goos.IsSylixos))
 	nbytes := n * unsafe.Sizeof(atomicScavChunkData{})
 	r := sysReserve(nil, nbytes)
 	sl := notInHeapSlice{(*notInHeap)(r), int(n), int(n)}

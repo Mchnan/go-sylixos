@@ -370,6 +370,9 @@ func preemptM(mp *m) {
 	// Issue #41702.
 	if GOOS == "darwin" || GOOS == "ios" {
 		execLock.rlock()
+	} else if GOOS == "sylixos" {
+		// On SylixOS, no support preempt
+		return
 	}
 
 	if mp.signalPending.CompareAndSwap(0, 1) {
