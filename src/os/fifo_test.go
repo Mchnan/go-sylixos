@@ -221,7 +221,14 @@ func TestNewFileNonBlocking(t *testing.T) {
 }
 
 func TestFIFONonBlockingEOF(t *testing.T) {
-	fifoName := filepath.Join(t.TempDir(), "issue-66239-fifo")
+	var dir string
+	if runtime.GOOS == "sylixos" {
+		dir = "/dev/pipe"
+	} else {
+		dir = t.TempDir()
+	}
+
+	fifoName := filepath.Join(dir, "issue-66239-fifo")
 	if err := syscall.Mkfifo(fifoName, 0600); err != nil {
 		t.Fatalf("Error creating fifo: %v", err)
 	}
