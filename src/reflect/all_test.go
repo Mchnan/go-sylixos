@@ -5931,37 +5931,42 @@ func TestStructOfWithInterface(t *testing.T) {
 		}
 	}
 
-	// Test an embedded nil pointer with pointer methods.
-	fields := []StructField{{
-		Name:      "StructIPtr",
-		Anonymous: true,
-		Type:      PointerTo(TypeOf(StructIPtr(want))),
-	}}
-	rt := StructOf(fields)
-	rv := New(rt).Elem()
-	// This should panic since the pointer is nil.
-	shouldPanic("", func() {
-		rv.Interface().(IfaceSet).Set(want)
-	})
+	// because sylixos only have on page table, var TypeOf(StructIPtr(want))|TypeOf(SettableStruct{}) is nil,
+	// sylixos kernel takes this nil as 0x0 on page table, so this test will crash kernel!,
+	// skip it.
+	if runtime.GOOS != "sylixos" {
+		// Test an embedded nil pointer with pointer methods.
+		fields := []StructField{{
+			Name:      "StructIPtr",
+			Anonymous: true,
+			Type:      PointerTo(TypeOf(StructIPtr(want))),
+		}}
+		rt := StructOf(fields)
+		rv := New(rt).Elem()
+		// This should panic since the pointer is nil.
+		shouldPanic("", func() {
+			rv.Interface().(IfaceSet).Set(want)
+		})
 
-	// Test an embedded nil pointer to a struct with pointer methods.
+		// Test an embedded nil pointer to a struct with pointer methods.
 
-	fields = []StructField{{
-		Name:      "SettableStruct",
-		Anonymous: true,
-		Type:      PointerTo(TypeOf(SettableStruct{})),
-	}}
-	rt = StructOf(fields)
-	rv = New(rt).Elem()
-	// This should panic since the pointer is nil.
-	shouldPanic("", func() {
-		rv.Interface().(IfaceSet).Set(want)
-	})
+		fields = []StructField{{
+			Name:      "SettableStruct",
+			Anonymous: true,
+			Type:      PointerTo(TypeOf(SettableStruct{})),
+		}}
+		rt = StructOf(fields)
+		rv = New(rt).Elem()
+		// This should panic since the pointer is nil.
+		shouldPanic("", func() {
+			rv.Interface().(IfaceSet).Set(want)
+		})
+	}
 
 	// The behavior is different if there is a second field,
 	// since now an interface value holds a pointer to the struct
 	// rather than just holding a copy of the struct.
-	fields = []StructField{
+	fields := []StructField{
 		{
 			Name:      "SettableStruct",
 			Anonymous: true,
